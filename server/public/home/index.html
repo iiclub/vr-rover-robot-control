@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Robot Teleop</title>
+<style>
+  body {
+    margin: 0; min-height: 100vh; background: #121214; color: #e1e1e6;
+    font: 15px system-ui, sans-serif; display: flex; flex-direction: column;
+    align-items: center; padding: 32px 16px; box-sizing: border-box;
+  }
+  h1 { font-size: 18px; margin: 0 0 24px; }
+  .links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 28px; }
+  a.button {
+    display: inline-block; padding: 16px 28px; border-radius: 8px; background: #2ecc71;
+    color: #06210f; text-decoration: none; font-weight: 600; font-size: 16px;
+  }
+  a.button.secondary { background: #3b82f6; color: #06122a; }
+  .card {
+    background: #1c1c20; border-radius: 10px; padding: 18px 20px; width: 100%;
+    max-width: 420px; margin-bottom: 16px; box-sizing: border-box;
+  }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: #9a9aa5; margin: 0 0 12px; }
+  .status-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #555; margin-right: 6px; }
+  .dot.up { background: #2ecc71; }
+  .dot.down { background: #e33; }
+  form { display: flex; gap: 8px; margin-top: 10px; }
+  input[type="text"] {
+    flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #323238;
+    background: #121214; color: #fff; font-size: 14px;
+  }
+  button {
+    padding: 10px 16px; border-radius: 6px; border: none; background: #3b82f6;
+    color: #06122a; font-weight: 600; cursor: pointer;
+  }
+  #formMsg { font-size: 13px; margin-top: 8px; min-height: 1.2em; }
+  #formMsg.error { color: #ff8080; }
+  #formMsg.ok { color: #6fe3a1; }
+  #noToken { color: #ff8080; font-size: 13px; max-width: 420px; text-align: center; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+  <h1>Robot Teleop</h1>
+  <div id="noToken" style="display:none">
+    No token in URL. Append <code>?token=YOUR_CONTROL_TOKEN</code> to this page's address.
+  </div>
+
+  <div class="links">
+    <a class="button" id="phoneLink" href="/phone">Open Phone Camera</a>
+    <a class="button secondary" id="questLink" href="/quest">Open Quest Control</a>
+    <a class="button secondary" id="testLink" href="/test">Open Test Controls</a>
+  </div>
+
+  <div class="card">
+    <h2>Status</h2>
+    <div class="status-row"><span><span id="dotRobot" class="dot"></span>Robot link</span><span id="txtRobot">--</span></div>
+    <div class="status-row"><span><span id="dotVideo" class="dot"></span>Video source</span><span id="txtVideo">--</span></div>
+    <div class="status-row"><span>Viewers</span><span id="txtViewers">--</span></div>
+    <div class="status-row"><span>Robot URL</span><span id="txtRobotUrl">--</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Update robot address</h2>
+    <form id="robotForm">
+      <input type="text" id="robotUrlInput" placeholder="e.g. 192.168.1.42 or ws://robot.local:81" />
+      <button type="submit">Save</button>
+    </form>
+    <div id="formMsg"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Robot Test Controls</title>
+<style>
+  * { touch-action: manipulation; }
+  body {
+    margin: 0; min-height: 100vh; background: #121214; color: #e1e1e6;
+    font: 15px system-ui, sans-serif; display: flex; flex-direction: column;
+    align-items: center; padding: 16px; box-sizing: border-box; user-select: none;
+  }
+  h1 { font-size: 16px; margin: 0 0 12px; }
+  .status { font-size: 13px; color: #9a9aa5; margin-bottom: 16px; text-align: center; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #555; margin-right: 4px; }
+  .dot.up { background: #2ecc71; }
+  .dot.down { background: #e33; }
+
+  .panel {
+    background: #1c1c20; border-radius: 10px; padding: 16px; margin-bottom: 14px;
+    width: 100%; max-width: 340px; box-sizing: border-box;
+  }
+  .panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: #9a9aa5; margin: 0 0 10px; }
+
+  .dpad { display: grid; grid-template-columns: 64px 64px 64px; grid-template-rows: 64px 64px 64px; gap: 8px; justify-content: center; }
+  .dpad button { grid-column: auto; }
+  #btnFwd { grid-column: 2; grid-row: 1; }
+  #btnLeft { grid-column: 1; grid-row: 2; }
+  #btnRight { grid-column: 3; grid-row: 2; }
+  #btnBack { grid-column: 2; grid-row: 3; }
+
+  button.ctrl {
+    border: none; border-radius: 8px; background: #2a2a30; color: #fff;
+    font-size: 20px; font-weight: 600; cursor: pointer;
+  }
+  button.ctrl:active, button.ctrl.held { background: #3b82f6; }
+
+  .row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+  .row button.ctrl { flex: 1; height: 52px; font-size: 15px; }
+
+  #stopBtn {
+    width: 100%; max-width: 340px; padding: 20px; margin-top: 4px; border: none;
+    border-radius: 10px; background: #e33; color: #fff; font-size: 20px; font-weight: 700;
+    cursor: pointer;
+  }
+  #stopBtn:active { background: #b32020; }
+
+  .gripperRow button.ctrl.active { background: #2ecc71; }
+</style>
+</head>
+<body>
+  <h1>Robot Test Controls</h1>
+  <div class="status">
+    <span id="dotRobot" class="dot"></span>Robot <span id="txtRobot">--</span>
+    &nbsp;&middot;&nbsp;
+    <span id="dotControl" class="dot"></span>Control link <span id="txtControl">--</span>
+  </div>
+
+  <div class="panel">
+    <h2>Drive (hold to move)</h2>
+    <div class="dpad">
+      <button class="ctrl" id="btnFwd">&#9650;</button>
+      <button class="ctrl" id="btnLeft">&#9664;</button>
+      <button class="ctrl" id="btnRight">&#9654;</button>
+      <button class="ctrl" id="btnBack">&#9660;</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Arm (hold to move)</h2>
+    <div class="row">
+      <button class="ctrl" id="btnBaseLeft">Base &#8630;</button>
+      <button class="ctrl" id="btnBaseRight">Base &#8631;</button>
+    </div>
+    <div class="row">
+      <button class="ctrl" id="btnLiftUp">Lift &#9650;</button>
+      <button class="ctrl" id="btnLiftDown">Lift &#9660;</button>
+    </div>
+    <div class="row gripperRow">
+      <button class="ctrl" id="btnGripperOpen">Gripper Open</button>
+      <button class="ctrl" id="btnGripperClose">Gripper Close</button>
+    </div>
+  </div>
+
+  <button id="stopBtn">STOP</button>
+
+  <script src="app.js"></script>
+</body>
+</html>

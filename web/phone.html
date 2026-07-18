@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Robot Camera</title>
+<link rel="manifest" href="/manifest.json" />
+<style>
+  html, body, #root { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #preview { width: 100%; height: 100%; object-fit: cover; }
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 10px 14px; font: 14px system-ui, sans-serif; color: #fff;
+    background: linear-gradient(rgba(0,0,0,0.55), transparent);
+    display: flex; justify-content: space-between; align-items: center;
+    pointer-events: none;
+  }
+  #status { display: flex; align-items: center; gap: 6px; }
+  #dot { width: 10px; height: 10px; border-radius: 50%; background: #e33; }
+  #dot.live { background: #2ecc71; }
+  #stats { opacity: 0.8; }
+  #robotUrlBar {
+    position: fixed; bottom: 0; left: 0; right: 0; padding: 8px 10px;
+    font: 12px system-ui, sans-serif; color: #fff; background: rgba(0,0,0,0.55);
+    display: flex; gap: 6px; align-items: center; pointer-events: auto;
+  }
+  #robotUrlBar input {
+    flex: 1; padding: 6px 8px; border-radius: 4px; border: 1px solid #444;
+    background: #111; color: #fff; font: inherit;
+  }
+  #robotUrlBar button {
+    padding: 6px 10px; border-radius: 4px; border: none; background: #2ecc71;
+    color: #06210f; font: inherit; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/phone/main.jsx"></script>
+</body>
+</html>

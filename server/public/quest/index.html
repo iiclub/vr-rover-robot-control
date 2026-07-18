@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Robot Teleop</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+  #overlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    font: 16px system-ui, sans-serif; color: #fff; background: #111;
+  }
+  #enterVr {
+    padding: 14px 28px; font-size: 18px; border-radius: 8px; border: none;
+    background: #2ecc71; color: #06210f; cursor: pointer;
+  }
+  #enterVr:disabled { background: #555; color: #aaa; }
+  #config { font-size: 13px; color: #999; max-width: 320px; text-align: center; }
+</style>
+</head>
+<body>
+  <div id="overlay">
+    <div>Robot Teleop</div>
+    <button id="enterVr" disabled>Checking WebXR support...</button>
+    <div id="config">Append <code>?token=YOUR_TOKEN</code> to this page's URL if not already present.</div>
+  </div>
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

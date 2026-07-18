@@ -1,0 +1,22 @@
+{
+  "name": "robot-control-web",
+  "version": "0.1.0",
+  "description": "Serverless P2P (WebRTC) phone/Quest teleoperation frontend, deployed on Vercel",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.34.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.166.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0"
+  }
+}

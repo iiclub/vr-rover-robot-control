@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/phone", "destination": "/phone.html" },
+    { "source": "/quest", "destination": "/quest.html" }
+  ]
+}
