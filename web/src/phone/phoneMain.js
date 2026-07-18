@@ -6,7 +6,7 @@
 // control JSON from the Quest, which this module forwards verbatim onto the
 // NodeMCU's local WebSocket (ws://robot.local:81 by default), exactly the message
 // shape firmware/src/main.cpp already expects -- no firmware changes needed.
-import { createPeerConnection, waitForIceGatheringComplete } from '../lib/webrtc.js';
+import { createPeerConnection, waitForIceGatheringComplete, logIceDiagnostics } from '../lib/webrtc.js';
 import { pollForNewOffer, postAnswer } from '../lib/signaling.js';
 
 const RECONNECT_DELAY_MS = 1000;
@@ -144,8 +144,10 @@ export function start() {
   async function connectToQuest(offer) {
     if (pc) pc.close();
     pc = createPeerConnection();
+    logIceDiagnostics(pc, 'phone');
 
     pc.ondatachannel = (ev) => {
+      console.log('[phone] ondatachannel fired:', ev.channel.label);
       const channel = ev.channel;
       channel.onmessage = (msg) => {
         let data;
@@ -182,14 +184,19 @@ export function start() {
     // addTrack binds into that existing slot instead of needing a whole new
     // negotiation round -- calling it before the remote offer is set would leave
     // the track with no m-line to attach to at all.
+    console.log('[phone] setting remote description (offer), sessionId:', offer.sessionId);
     await pc.setRemoteDescription({ type: 'offer', sdp: offer.sdp });
     for (const track of cameraStream.getVideoTracks()) {
+      console.log('[phone] adding video track:', track.label, track.readyState);
       pc.addTrack(track, cameraStream);
     }
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+    console.log('[phone] local description set, gathering ICE candidates...');
     await waitForIceGatheringComplete(pc);
+    console.log('[phone] posting answer');
     await postAnswer(offer.sessionId, pc.localDescription.sdp);
+    console.log('[phone] answer posted, waiting for ICE/DTLS to connect...');
 
     await ended;
   }

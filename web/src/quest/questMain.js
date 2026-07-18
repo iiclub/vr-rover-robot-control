@@ -5,7 +5,7 @@
 // of a single WebRTC RTCPeerConnection carrying both a video track (from the phone's
 // camera) and a DataChannel (control JSON), connected directly to the phone.
 import * as THREE from 'three';
-import { createPeerConnection, waitForIceGatheringComplete } from '../lib/webrtc.js';
+import { createPeerConnection, waitForIceGatheringComplete, logIceDiagnostics } from '../lib/webrtc.js';
 import { postOffer, pollForAnswer } from '../lib/signaling.js';
 
 const CONTROL_SEND_HZ = 20;
@@ -121,12 +121,15 @@ export function start() {
     controlConnected = false;
 
     pc = createPeerConnection();
+    logIceDiagnostics(pc, 'quest');
     dataChannel = pc.createDataChannel('control', { ordered: false, maxRetransmits: 0 });
     dataChannel.onopen = () => {
+      console.log('[quest] dataChannel open');
       controlConnected = true;
       reconnectAttempt = 0;
     };
     dataChannel.onclose = () => {
+      console.log('[quest] dataChannel closed');
       controlConnected = false;
     };
 
@@ -139,8 +142,9 @@ export function start() {
     pc.addTransceiver('video', { direction: 'recvonly' });
 
     pc.ontrack = (ev) => {
+      console.log('[quest] ontrack fired:', ev.track.kind, ev.track.readyState);
       videoEl.srcObject = ev.streams[0] || new MediaStream([ev.track]);
-      videoEl.play().catch(() => {});
+      videoEl.play().catch((err) => console.warn('[quest] videoEl.play() failed:', err.message));
       videoConnected = true;
       startVideoFrameLoop();
     };
@@ -158,12 +162,18 @@ export function start() {
     };
 
     const sessionId = crypto.randomUUID();
+    console.log('[quest] starting connect attempt, sessionId:', sessionId);
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
+    console.log('[quest] local description set, gathering ICE candidates...');
     await waitForIceGatheringComplete(pc);
+    console.log('[quest] posting offer');
     await postOffer(sessionId, pc.localDescription.sdp);
+    console.log('[quest] offer posted, polling for answer...');
     const answer = await pollForAnswer(sessionId);
+    console.log('[quest] answer received, setting remote description');
     await pc.setRemoteDescription({ type: 'answer', sdp: answer.sdp });
+    console.log('[quest] remote description set, waiting for ICE/DTLS to connect...');
   }
 
   function scheduleReconnect() {

@@ -35,3 +35,21 @@ export function waitForIceGatheringComplete(pc) {
     pc.addEventListener('icegatheringstatechange', check);
   });
 }
+
+// Logs every candidate as it's discovered (host/srflx/relay) and any gathering
+// errors (e.g. a TURN server rejecting credentials or being unreachable) -- the
+// single most useful thing to look at when a connection won't establish. Call this
+// right after createPeerConnection(), before creating the offer/answer.
+export function logIceDiagnostics(pc, label) {
+  pc.addEventListener('icecandidate', (ev) => {
+    if (!ev.candidate) {
+      console.log(`[${label}] ICE gathering finished`);
+      return;
+    }
+    const { type, protocol, address, relatedAddress } = ev.candidate;
+    console.log(`[${label}] ICE candidate: type=${type} protocol=${protocol} address=${address} relatedAddress=${relatedAddress}`);
+  });
+  pc.addEventListener('icecandidateerror', (ev) => {
+    console.error(`[${label}] ICE candidate error: url=${ev.url} errorCode=${ev.errorCode} errorText=${ev.errorText}`);
+  });
+}
