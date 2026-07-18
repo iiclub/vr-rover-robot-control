@@ -14,7 +14,10 @@ async function postSignal(type, sessionId, sdp) {
     headers: { 'Content-Type': 'application/json', 'X-Signal-Token': token },
     body: JSON.stringify({ sessionId, sdp }),
   });
-  if (!res.ok) throw new Error(`postSignal(${type}) failed: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`postSignal(${type}) failed: ${res.status} ${body.error || ''}`);
+  }
 }
 
 export function postOffer(sessionId, sdp) {
@@ -32,7 +35,8 @@ export async function pollForNewOffer(lastSeenSessionId, { intervalMs = 1000, si
     if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
     const res = await fetch(signalUrl('offer'), { signal });
     const body = await res.json();
-    if (body.ok && body.offer && body.offer.sessionId !== lastSeenSessionId) {
+    if (!body.ok) console.warn('pollForNewOffer: server error:', body.error);
+    else if (body.offer && body.offer.sessionId !== lastSeenSessionId) {
       return body.offer;
     }
     await sleep(intervalMs, signal);
@@ -47,7 +51,8 @@ export async function pollForAnswer(sessionId, { intervalMs = 1000, timeoutMs = 
     if (Date.now() > deadline) throw new Error('timed out waiting for answer');
     const res = await fetch(signalUrl('answer', { sessionId }), { signal });
     const body = await res.json();
-    if (body.ok && body.answer) return body.answer;
+    if (!body.ok) console.warn('pollForAnswer: server error:', body.error);
+    else if (body.answer) return body.answer;
     await sleep(intervalMs, signal);
   }
 }

@@ -21,6 +21,14 @@ function checkToken(req) {
 }
 
 export default async function handler(req, res) {
+  if (!redisUrl || !redisToken) {
+    // Most common cause: the Redis integration's env vars were added to the Vercel
+    // project after this function was last deployed -- Vercel only injects env vars
+    // into the build that follows, so a redeploy is needed to pick them up.
+    res.status(500).json({ ok: false, error: 'server misconfigured: missing Redis URL/token env vars' });
+    return;
+  }
+
   if (!checkToken(req)) {
     res.status(401).json({ ok: false, error: 'unauthorized' });
     return;
@@ -32,37 +40,42 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method === 'GET') {
-    if (type === 'offer') {
-      const offer = await kv.get('offer:latest');
-      res.status(200).json({ ok: true, offer: offer || null });
+  try {
+    if (req.method === 'GET') {
+      if (type === 'offer') {
+        const offer = await kv.get('offer:latest');
+        res.status(200).json({ ok: true, offer: offer || null });
+        return;
+      }
+      // answer
+      const sessionId = req.query.sessionId;
+      if (!sessionId) {
+        res.status(400).json({ ok: false, error: 'sessionId required' });
+        return;
+      }
+      const answer = await kv.get(`answer:${sessionId}`);
+      res.status(200).json({ ok: true, answer: answer || null });
       return;
     }
-    // answer
-    const sessionId = req.query.sessionId;
-    if (!sessionId) {
-      res.status(400).json({ ok: false, error: 'sessionId required' });
-      return;
-    }
-    const answer = await kv.get(`answer:${sessionId}`);
-    res.status(200).json({ ok: true, answer: answer || null });
-    return;
-  }
 
-  if (req.method === 'POST') {
-    const { sessionId, sdp } = req.body || {};
-    if (!sessionId || !sdp) {
-      res.status(400).json({ ok: false, error: 'sessionId and sdp required' });
+    if (req.method === 'POST') {
+      const { sessionId, sdp } = req.body || {};
+      if (!sessionId || !sdp) {
+        res.status(400).json({ ok: false, error: 'sessionId and sdp required' });
+        return;
+      }
+      if (type === 'offer') {
+        await kv.set('offer:latest', { sessionId, sdp }, { ex: TTL_SECONDS });
+      } else {
+        await kv.set(`answer:${sessionId}`, { sdp }, { ex: TTL_SECONDS });
+      }
+      res.status(200).json({ ok: true });
       return;
     }
-    if (type === 'offer') {
-      await kv.set('offer:latest', { sessionId, sdp }, { ex: TTL_SECONDS });
-    } else {
-      await kv.set(`answer:${sessionId}`, { sdp }, { ex: TTL_SECONDS });
-    }
-    res.status(200).json({ ok: true });
-    return;
-  }
 
-  res.status(405).json({ ok: false, error: 'method not allowed' });
+    res.status(405).json({ ok: false, error: 'method not allowed' });
+  } catch (err) {
+    console.error('[api/signal] Redis operation failed:', err);
+    res.status(500).json({ ok: false, error: `redis error: ${err.message}` });
+  }
 }
