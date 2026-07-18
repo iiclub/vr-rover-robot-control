@@ -130,6 +130,14 @@ export function start() {
       controlConnected = false;
     };
 
+    // Quest never calls addTrack (only the phone sends video) -- without this,
+    // the offer would have no video m-line at all, and the phone's addTrack on
+    // the answer side would have nothing to attach to (a new media line can only
+    // be introduced by a fresh offer, not an answer, and neither side renegotiates).
+    // Declaring a recvonly video slot up front is what lets the phone's addTrack
+    // bind straight into it when it processes this offer.
+    pc.addTransceiver('video', { direction: 'recvonly' });
+
     pc.ontrack = (ev) => {
       videoEl.srcObject = ev.streams[0] || new MediaStream([ev.track]);
       videoEl.play().catch(() => {});
@@ -137,7 +145,11 @@ export function start() {
       startVideoFrameLoop();
     };
 
+    pc.oniceconnectionstatechange = () => {
+      console.log('[quest] iceConnectionState:', pc.iceConnectionState);
+    };
     pc.onconnectionstatechange = () => {
+      console.log('[quest] connectionState:', pc.connectionState);
       if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) {
         videoConnected = false;
         controlConnected = false;

@@ -145,10 +145,6 @@ export function start() {
     if (pc) pc.close();
     pc = createPeerConnection();
 
-    for (const track of cameraStream.getVideoTracks()) {
-      pc.addTrack(track, cameraStream);
-    }
-
     pc.ondatachannel = (ev) => {
       const channel = ev.channel;
       channel.onmessage = (msg) => {
@@ -167,7 +163,11 @@ export function start() {
     // Block here until this connection ends, then the outer loop polls for the
     // next offer (Quest generates a fresh sessionId whenever it reconnects).
     const ended = new Promise((resolve) => {
+      pc.oniceconnectionstatechange = () => {
+        console.log('[phone] iceConnectionState:', pc.iceConnectionState);
+      };
       pc.onconnectionstatechange = () => {
+        console.log('[phone] connectionState:', pc.connectionState);
         if (pc.connectionState === 'connected') {
           setStatus(true, 'connected');
         } else if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) {
@@ -177,7 +177,15 @@ export function start() {
       };
     });
 
+    // setRemoteDescription must happen before addTrack: Quest's offer already
+    // declares a recvonly video slot (see questMain.js's addTransceiver call), and
+    // addTrack binds into that existing slot instead of needing a whole new
+    // negotiation round -- calling it before the remote offer is set would leave
+    // the track with no m-line to attach to at all.
     await pc.setRemoteDescription({ type: 'offer', sdp: offer.sdp });
+    for (const track of cameraStream.getVideoTracks()) {
+      pc.addTrack(track, cameraStream);
+    }
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     await waitForIceGatheringComplete(pc);
