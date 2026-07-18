@@ -1,9 +1,23 @@
-// Shared RTCPeerConnection helpers. STUN-only (no TURN) -- see docs/PLAN.md for why
-// this is the accepted v1 tradeoff and what to add if a restrictive-NAT network needs it.
-
+// Shared RTCPeerConnection helpers.
+//
+// TURN fallback: STUN-only failed even on a same-LAN test -- Chrome hides local IPs
+// behind per-session mDNS hostnames (privacy feature) that the other peer must resolve,
+// and the remaining STUN/srflx candidate pair (same public IP on both sides, behind the
+// same router) commonly fails too since most consumer routers don't support NAT
+// hairpinning. A TURN relay sidesteps both failure modes and is also what cross-network
+// sessions (phone/Quest on different networks) will need anyway. Direct P2P is still
+// preferred when it works -- TURN candidates are only used when host/srflx pairs fail.
+// openrelay.metered.ca is a free public TURN service, fine for personal/low-traffic use;
+// swap for a private TURN (metered.ca paid tier, Twilio, self-hosted coturn) if this
+// project ever needs guaranteed bandwidth/uptime.
 export function createPeerConnection() {
   return new RTCPeerConnection({
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    ],
   });
 }
 
